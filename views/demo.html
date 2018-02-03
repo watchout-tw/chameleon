@@ -1,0 +1,71 @@
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> 
+</head>
+<body>
+  <div>
+      <div>
+          <label for="filePicker">Choose or drag a file:</label><br>
+          <input type="file" id="filePicker">
+      </div>
+      <br>
+      <button id="upload">upload</button>
+      <br>
+      <div>
+          <h1>Base64 encoded File uplaod</h1>
+          <textarea id="base64textarea" placeholder="Base64 will appear here" cols="50" rows="15"></textarea>
+      </div>
+  </div>
+</body>
+<script>
+var binaryString ='';
+
+  var handleFileSelect = function(evt) {
+    var files = evt.target.files;
+      var file = files[0];
+
+      if (files && file) {
+          var reader = new FileReader();
+
+          reader.onload = function(readerEvt) {
+            binaryString = readerEvt.target.result;
+             
+          };
+          reader.readAsBinaryString(file);
+      }
+  };
+
+  if (window.File && window.FileReader && window.FileList && window.Blob) {
+      document.getElementById('filePicker').addEventListener('change', handleFileSelect, false);
+  } else {
+      alert('The File APIs are not fully supported in this browser.');
+  }
+
+  $( document ).ready(function() {
+  // Handler for .ready() called.
+    $("#upload").click(function (){
+
+      document.getElementById("base64textarea").value = btoa(binaryString);
+
+      var request = $.ajax({
+        url: "http://127.0.0.1:8665/upload",
+        method: "POST",
+        data: { file : binaryString },
+        dataType: "json"
+      });
+      
+      request.done(function( msg ) {
+        document.getElementById("base64textarea").value = msg;
+      });
+      
+      request.fail(function( jqXHR, textStatus ) {
+        alert( "Request failed: " + textStatus );
+      });
+
+
+
+      
+    });
+  });
+</script>
+</html>

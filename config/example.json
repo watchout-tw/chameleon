@@ -1,0 +1,10 @@
+{
+  "commons":{
+    "serverURL":"http://localhost",
+    "authServerURL":"http://localhost",
+    "waaServerURL":""
+  },
+  "privateKeys":{
+    "login" : ""
+  }
+}

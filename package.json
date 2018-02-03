@@ -1,0 +1,33 @@
+{
+  "name": "watchout-tunnel-imgur",
+  "version": "1.0.0",
+  "description": "The image upload and management proxy service of imgur",
+  "main": "index.js",
+  "scripts": {
+    "start": "./node_modules/.bin/eslint --color --fix ** && ./node_modules/.bin/nodemon app.js",
+    "eslint": "./node_modules/.bin/eslint --color --fix **"
+  },
+  "author": "Charlieeeee",
+  "license": "All rights reserved",
+  "dependencies": {
+    "async": "^2.5.0",
+    "boom": "^4.3.1",
+    "config": "^1.25.1",
+    "glob": "^7.1.1",
+    "hapi": "^16.1.1",
+    "hapi-auth-jwt2": "^7.2.4",
+    "inert": "^4.2.0",
+    "jsonwebtoken": "^7.4.0",
+    "lout": "^10.0.1",
+    "moment": "^2.18.1",
+    "mysql": "github:mysqljs/mysql",
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2",
+    "shortid": "^2.2.8",
+    "vision": "^4.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "nodemon": "^1.11.0"
+  }
+}
