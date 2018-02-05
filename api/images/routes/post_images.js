@@ -1,7 +1,7 @@
 'use strict';
-const validator = require('../schemas/validator_post_upload');
-const controller = require('../schemas/controller_post_upload');
-//const decodeJWT = require('../../../tools/decodeJWT');
+const validator = require('../schemas/validator_post_image');
+const controller = require('../schemas/controller_post_image');
+const decodeJWT = require('../../../tools/decodeJWT');
 //const roles = require('../../../tools/roles');
 
 module.exports = {
@@ -23,13 +23,14 @@ module.exports = {
     }
   },
   handler: (request, reply) => {
+    /*
     let actionPayload = {
       decodedData: null,
       request: request,
       reply: reply
     };
-    controller.action(actionPayload);
-    //decodeJWT.decode(request, true, roles.consoleEditor, controller, reply);
+    controller.action(actionPayload);*/
+    decodeJWT.decode(request, false, null, controller, reply);
   }
 };
 

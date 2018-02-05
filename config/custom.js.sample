@@ -1,0 +1,10 @@
+'use strict';
+let auth = '<AUTH_SERVER_URL>';
+let serverURL = '<SERVER_URL>';
+let waaServerURL = '<WAA_SERVER_URL>';
+
+module.exports = {
+  auth: auth,
+  serverURL: serverURL,
+  waaServerURL:waaServerURL
+};

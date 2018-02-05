@@ -1,10 +1,6 @@
 'use strict';
 const config = require('config');
-//const async = require('async');
 const message = require('./message');
-const database = require('./database');
-const log = require('./log');
-const moment = require('moment');
 
 const getVisibillty = (value) => {
   switch (value)
@@ -27,75 +23,6 @@ const getPages = (sum) => {
   }
 };
 
-const getWhereStr = (obj, where) => {
-  // obj example = [{key:'R.id', param:params['id'], type:'string',match:'exact'} ]
-  // where option : add "where" string or not
-  let whereStr ='';
-  
-  let flag = false;
-  for (let index in obj){
-    if (obj[index]['param'] !== undefined) {
-
-      if (where == true && !flag){
-        whereStr += ' WHERE ';
-        flag = true;
-      }
-      else {
-        whereStr += ' AND '; 
-      }
-
-      if (obj[index]['key'] == 'index') {
-        whereStr += `\`${obj[index]['key']}\``;
-      }
-      else {
-        whereStr += obj[index]['key'];
-      }
-
-      if ( obj[index]['type'] == 'str') {
-        if ( obj[index]['match'] == 'partial') {
-          whereStr += ` like "%${obj[index]['param']}%"`;
-        }
-        else {
-          whereStr += '="' + obj[index]['param'] +'"';
-        }
-      }
-      else if ( obj[index]['type'] == 'date') {
-
-        let objDate = {date: obj[index]['param']};
-
-        whereStr += '=' + toSQLValue({ name:'date', type:'date'},objDate);
-      }
-      else {
-        whereStr += '=' + obj[index]['param'];
-      }
-      
-    }
-  }
-  return whereStr;
-};
-
-const whereStrOrIDs = (where,key,arr) => {
-  let output = '';
-
-  if (checkArrayLength(arr) >0) {
-    for (let i in arr){
-      if (i == 0) {
-        if (where){
-          output += 'WHERE (';
-        }
-        else {
-          output += 'AND (';
-        }
-      }
-      else {
-        output += ' OR ';
-      }
-      output += `${key}=${arr[i]}`;
-    }
-    output += ')';
-  }
-  return output;
-};
 
 const rmNullItem = (results, Key) => {
   let arr = [];
@@ -318,17 +245,6 @@ const parseStrArrayToCount = (arr, results) => {
   return results;
 };
 
-const checkDBError = (error, reply) =>{
-
-  if (error.code == 'ER_DUP_ENTRY'){
-    message.ErrorCustomBadRequest('system_db_dup_entry',reply);
-  }
-  else {
-    message.ErrorBadImplementation('system_db_bad_query',reply);
-  }
-
-};
-
 const checkDeleteResult = (results, reply) => {
   if ( results.affectedRows > 0){
     message.MsgNoContent(reply);
@@ -336,162 +252,6 @@ const checkDeleteResult = (results, reply) => {
   else {
     message.ErrorObjectNotFound(reply);
   }
-};
-
-/**
-  * compose SQL string for adding multiple items 
-  * @param {object} table - table object.
-  *   @param {string} table.name - The target table name
-  *   @param {object[]} table.keys - The target key object
-  *     @param {string} table.keys[].name - name of key
-  *     @param {string} table.keys[].type - type of key
-  * @param {object[]} payload - The payload
-  */
-const composeSQLStringPost = (table,payload) =>{
-
-  let keyStr = '(';
-  for (let k in table['keys']) {
-    if ( k != 0 ) {
-      keyStr += ',';
-    }
-    keyStr += `\`${table['keys'][k]['name']}\``;
-
-  }
-  keyStr += ')';
-  
-  let itemStr = '';
-  
-  for (let i in payload) {
-    if ( i != 0 ) {
-      itemStr += ',';
-    }
-    itemStr += '(';
-
-    for (let j in table['keys']) {
-
-      if ( j != 0 ) {
-        itemStr += ',';
-      }
-
-      itemStr += toSQLValue(
-        {
-          name: table['keys'][j]['name'],
-          type: table['keys'][j]['type']
-        },
-        payload[i]
-      );
-    }
-
-
-    itemStr += ')';
-  }
-  
-  return (`
-    INSERT INTO
-      ${table.name}
-      ${keyStr}  
-    VALUES
-      ${itemStr}
-  `);
-};
-
-/**
-  * compose SQL string for update database 
-  * @param {object} table - table object.
-  *   @param {string} table.name - The target table name
-  *   @param {object[]} table.keys - The target key object
-  *     @param {string} table.keys[].name - name of key
-  *     @param {string} table.keys[].type - type of key
-  * @param {object} payload - The payload
-  * @param {string} whereStr - whereStr of the target
-  */
-const composeSQLStringPatch = (table,payload,whereStr) => {
-
-  let keyArr = table.keys;
-
-  let res = `UPDATE ${table.name} SET `;
-  let d ='';
-  
-  for (let index in keyArr) {
-
-    if (index != 0) {
-      res += ',';
-    }
-    if ( payload.hasOwnProperty(keyArr[index]['name'])) {
-      res += `${d} \`${keyArr[index]['name']}\` = ${toSQLValue(keyArr[index], payload)}`;
-    }
-
-  }
-  res += ' ';
-  res += whereStr;
-  return (res);
-};
-
-const composeSQLSelectItem = (items) =>{
-
-  let res = '';
-  for (let i in items) {
-    if (i == 0){
-      res += items[i];
-    }
-    else {
-      res += ', ' + items[i];
-    }
-    
-  }
-  return res;
-};
-
-
-/**
-  * compose SQL insert string
-  * @param {string[]} keys - Payload keys.
-  * @param {object[]} items - Payload array.
-  */
-const composeSQLInsertItem = (keys,items) =>{  
-  let res = '';
-  for (let i in items) {
-    res += '(';
-    if ( i !== 0 ){
-      res += ',';
-    }
-
-    for (let j in keys) {
-      if ( j !== 0 ){
-        res += ',';
-      }
-      res += items[i][j];
-
-    }
-    res += ')';
-  }
-  return res;
-};
-
-
-const getSQLPostItemArray = (editor, key, keys, payload) => {
-
-  let arr = [];
-
-  for (let index in payload) {
-    let arr_item = [];
-
-    if (editor !== null) {
-      arr_item.push(editor);
-    }
-    arr_item.push(key);
-
-    for (let k in keys) {
-      if (payload[index].hasOwnProperty(keys[k])) {
-        arr_item.push(payload[index][keys[k]]);
-      }
-      else {
-        arr_item.push(null);
-      }
-    }
-    arr.push(arr_item);
-  }
-  return arr;
 };
 
 const arrayToString = (arr,itemType) => {
@@ -504,6 +264,7 @@ const arrayToString = (arr,itemType) => {
 
       if (i == 0) {
         d = '';
+
       }
       else {
         d = ',';
@@ -547,245 +308,6 @@ const arrayToString = (arr,itemType) => {
     return '\'[]\'';
   }
   return res;
-};
-
-const postSQLString = (table, editor, keyArr, payload) => {
-  let keys = '';
-  let values = '';
-  let d ='';
-  let keyeditor = 'editor';
-  if (editor == null) {
-    keyeditor = '';
-    values += '(';
-  }
-  else {
-    values += '(' + editor;
-  }
-
-  keys += 'INSERT INTO ' + table + ' (' + keyeditor;
-  
-  for (let index in keyArr) {
-
-    if (editor == null) {
-      if (index == 0) {
-        d = '';
-      }
-      else {
-        d = ',';
-      }
-    }
-    else {
-      d = ',';
-    }
-
-    if (keyArr[index]['name'] == 'index') {
-      keys += d + '`' + keyArr[index]['name'] + '`';
-    }
-    else {
-      keys += d + keyArr[index]['name'];
-    }
-    if ( payload.hasOwnProperty(keyArr[index]['name'])) {
-      values += d + toSQLValue(keyArr[index], payload);
-    }
-    else {
-      values += d + null;
-    }
-  }
-  keys += ') VALUES ';
-  values += ')';
-
-  return keys + values;
-
-};
-
-
-
-const replaseSQLString = (table, editor, keyArr, payload) => {
-
-  let res = `REPLACE ${table} SET `;
-  let d ='';
- 
-  if (editor !== null) {
-    res += `editor = ${editor}`;
-  }
-  for (let index in keyArr) {
-
-    if (editor == null) {
-      if (index == 0) {
-        d = '';
-      }
-      else {
-        d = ',';
-      }
-    }
-    else {
-      d = ',';
-    }
-
-    if ( payload.hasOwnProperty(keyArr[index]['name'])) {
-      if (keyArr[index]['name'] == 'index') {
-        res += `${d} \`index\` =  ${toSQLValue(keyArr[index], payload)}`;
-      }
-      else {
-        res += `${d} ${keyArr[index]['name']} = ${toSQLValue(keyArr[index], payload)}`;
-      }
-
-     
-    }
-
-  }
-  return (res);
-};
-
-const deleteSQLString = (table, whereStr) => {
-  return (`DELETE FROM ${table} ${whereStr}`);
-};
-
-
-const toSQLValue = (key, item) => {
-
-  let val = item[key['name']];
-  if (key['type'] == 'str' ) {
-
-    if (val == null) {
-      return  val;
-    }
-    else {
-      return (`"${val}"`);
-    }
-  }
-  else if (key['type'] == 'date') {
-    if (val == null) {
-      return null;
-    }
-    else {
-      return (`"${moment(val).format('YYYY-MM-DD HH-mm-ss')}"`);
-    }
-  }
-  else if (key['type'] == 'arr_str' ){
-    return ( arrayToString(val,'str'));
-  }
-  else if (key['type'] == 'arr_int' ){
-    return ( arrayToString(val,'int'));
-  }
-  else if (key['type'] == 'json' ){
-    return (`'${val}'`);
-  }
-  else {
-    return  val;
-  }
-};
-
-const executeDBCountRows = (Table, callback) => {
-
-  if (Table == '' || Table == null || Table == undefined){
-    callback({code:500,msg:'system_db_bad_query'});
-  }
-  else {
-    let connection = database.initiate();
-    connection.query(`SELECT COUNT(*) sum FROM ${Table}`, (error, results) => {
-      if (error) {
-        database.terminate(connection);
-        log.error(error);
-        callback({code:500,msg:'system_db_bad_query'});
-      }
-      else {
-        callback(null, results);
-      }
-
-    }); 
-    database.terminate(connection);
-  }
-};
-
-const executeDBWithSumCallback = (queryStr, callback) => {
-
-  if (queryStr == '' || queryStr == null || queryStr == undefined){
-    callback({code:500,msg:'system_db_bad_query'});
-  }
-  else {
-    let connection = database.initiate();
-    connection.query(queryStr, (error, results) => {
-      if (error) {
-        database.terminate(connection);
-        log.error(error);
-        if (error.code == 'ER_DUP_ENTRY'){
-          callback({code:400,msg:'system_db_dup_entry'});
-        }
-        else {
-          callback({code:500,msg:'system_db_bad_query'});
-        }
-      }
-      else {
-        connection.query('SELECT FOUND_ROWS() sum', (error, results_sum) => {
-          if (error) {
-            database.terminate(connection);
-            callback({code:500,msg:'system_db_bad_query'});
-          }
-          else {
-            callback(null, results, results_sum);
-          }
-        });
-        database.terminate(connection);
-      }
-
-    }); 
-  }
-};
-
-const executeDBWithCallback = (queryStr, callback) => {
-
-  if (queryStr == '' || queryStr == null || queryStr == undefined){
-    callback({code:500,msg:'system_db_bad_query'});
-  }
-  else {
-    let connection = database.initiate();
-    connection.query(queryStr, (error, results) => {
-      if (error) {
-        database.terminate(connection);
-        log.error(error);
-        if (error.code == 'ER_DUP_ENTRY'){
-          callback({code:400,msg:'system_db_dup_entry'});
-        }
-        else {
-          callback({code:500,msg:'system_db_bad_query'});
-        }
-      }
-      else {
-        callback(null, results);
-      }
-
-    }); 
-    database.terminate(connection);
-  }
-};
-
-const executeDBWithPayloadCallback = (queryStr, payload, callback) => {
-
-  if (  queryStr == '' || queryStr == null || queryStr == undefined ||
-        payload == '' || payload == null || payload == undefined) {
-    callback({code:500,msg:'system_db_bad_query'});
-  }
-  else {
-    let connection = database.initiate();
-    connection.query(queryStr, payload, (error, results) => {
-      if (error) {
-        database.terminate(connection);
-        log.error(error);
-        if (error.code == 'ER_DUP_ENTRY'){
-          callback({code:400,msg:'system_db_dup_entry'});
-        }
-        else {
-          callback({code:500,msg:'system_db_bad_query'});
-        }
-      }
-      else {
-        callback(null, results);
-      }
-
-    }); 
-    database.terminate(connection);
-  }
 };
 
 const checkArrayLength = (arr) => {
@@ -907,27 +429,9 @@ const rmRepeatItemInArr = (arr) => {
   return result;
 };
 
-const DBDeleteWhereStrCheck = (whereStr) => {
-  if ( !nullCheck(whereStr) ) {
-    return false;
-  }
-  else {
-    if (  (whereStr.indexOf('WHERE') < 0 && whereStr.indexOf('where') < 0 )||
-          whereStr.indexOf('=') < 0 ||
-          whereStr.length <= 0) {
-      return false;
-    }
-    else {
-      return true;
-    }
-  }
-};
-
 module.exports = {
   getVisibillty:getVisibillty,
   getPages:getPages,
-  getWhereStr:getWhereStr,
-  whereStrOrIDs:whereStrOrIDs,
   rmNullItem:rmNullItem,
   rmNullarray:rmNullarray,
   nullToArray:nullToArray,
@@ -937,27 +441,12 @@ module.exports = {
   parseStrArr:parseStrArr,
   parseStrArray:parseStrArray,
   parseStrArrayToCount:parseStrArrayToCount,
-  checkDBError:checkDBError,
   checkDeleteResult:checkDeleteResult,
-  composeSQLStringPost:composeSQLStringPost,
-  composeSQLSelectItem:composeSQLSelectItem,
-  composeSQLInsertItem:composeSQLInsertItem,
-  getSQLPostItemArray:getSQLPostItemArray,
   arrayToString:arrayToString,
-  toSQLValue:toSQLValue,
-  postSQLString:postSQLString,
-  composeSQLStringPatch:composeSQLStringPatch,
-  replaseSQLString:replaseSQLString,
-  deleteSQLString:deleteSQLString,
-  executeDBCountRows:executeDBCountRows,
-  executeDBWithSumCallback:executeDBWithSumCallback,
-  executeDBWithCallback:executeDBWithCallback,
-  executeDBWithPayloadCallback:executeDBWithPayloadCallback,
   checkArrayLength:checkArrayLength,
   arrayNullToEmpty:arrayNullToEmpty,
   nullToZero:nullToZero,
   diffArr:diffArr,
   nullCheck:nullCheck,
-  rmRepeatItemInArr:rmRepeatItemInArr,
-  DBDeleteWhereStrCheck:DBDeleteWhereStrCheck,
+  rmRepeatItemInArr:rmRepeatItemInArr
 };

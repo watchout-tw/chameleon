@@ -4,7 +4,5 @@
     "authServerURL":"http://localhost",
     "waaServerURL":""
   },
-  "privateKeys":{
-    "login" : ""
-  }
+  "privateKeys": ""
 }

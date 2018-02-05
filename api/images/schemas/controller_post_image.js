@@ -13,6 +13,8 @@ const action = (actionPayload) => {
 
   let resData = '';
 
+  console.log('!!! decodedData',actionPayload.decodedData);
+
   async.waterfall([
     (callback) => {
       if (!checkBase64(payload.image)){

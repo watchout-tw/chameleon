@@ -20,7 +20,7 @@ let decode = (request, bounce, role,controller, reply) => {
     }
     else {
 
-      console.log('decoded :',decoded);
+      //console.log('decoded :',decoded);
 
       let actionPayload = {
         decodedData: decoded,
