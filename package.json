@@ -1,13 +1,13 @@
 {
-  "name": "watchout-tunnel-imgur",
+  "name": "waimgur",
   "version": "1.0.0",
   "description": "The image upload and management proxy service of imgur",
   "main": "index.js",
   "scripts": {
-    "start": "./node_modules/.bin/eslint --color --fix ** && ./node_modules/.bin/nodemon app.js",
+    "start": "./node_modules/.bin/eslint --color --fix ** && ./node_modules/.bin/nodemon index.js",
     "eslint": "./node_modules/.bin/eslint --color --fix **"
   },
-  "author": "Charlieeeee",
+  "author": "Watchout",
   "license": "All rights reserved",
   "dependencies": {
     "async": "^2.5.0",
@@ -19,6 +19,7 @@
     "inert": "^4.2.0",
     "jsonwebtoken": "^7.4.0",
     "lout": "^10.0.1",
+    "module-mae": "file:../module-mae",
     "moment": "^2.18.1",
     "mysql": "github:mysqljs/mysql",
     "request": "^2.83.0",

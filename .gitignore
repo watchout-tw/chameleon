@@ -2,3 +2,7 @@ node_modules
 .vscode
 config/default.json
 npm-debug.log
+
+package-lock\.json
+
+config/custom\.js
