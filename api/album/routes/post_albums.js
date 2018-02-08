@@ -1,12 +1,12 @@
 'use strict';
-const validator = require('../schemas/validator_post_image');
-const controller = require('../schemas/controller_post_image');
+const validator = require('../schemas/validator_post_album');
+const controller = require('../schemas/controller_post_album');
 const decodeJWT = require('../../../tools/decodeJWT');
 //const roles = require('../../../tools/roles');
 
 module.exports = {
   method: 'POST',
-  path: '/images',
+  path: '/albums',
   config: {
     description: 'upload image to imgur',
     validate: {
