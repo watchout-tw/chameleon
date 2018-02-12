@@ -1,5 +1,4 @@
 'use strict';
-const app = require('./app');
 const commons = require('./config/custom');
 const mae = require('module-mae');
 
@@ -16,6 +15,7 @@ config.commons['waaServerURL'] = commons.waaServerURL;
 let configPath = './config/default.json';
 
 const GO = () => {
+  const app = require('./app');
   app.start();
 };
 
