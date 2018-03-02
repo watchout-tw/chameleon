@@ -1,5 +1,5 @@
-# `Tunnel-Imgur`  -  The image upload and management proxy service of imgur
-
+# i.waa.tw
+Image upload and management service for citizens of Watchout
 
 ## Installation
 ```
